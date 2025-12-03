@@ -1,0 +1,7 @@
+{
+  "name": "EduStream AI Hub",
+  "description": "An intelligent video learning platform featuring AI-powered tools, video-on-demand, and smart voice transcription.",
+  "requestFramePermissions": [
+    "microphone"
+  ]
+}
