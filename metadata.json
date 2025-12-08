@@ -1,6 +1,6 @@
 {
-  "name": "EduStream AI Hub",
-  "description": "An intelligent video learning platform featuring AI-powered tools, video-on-demand, and smart voice transcription.",
+  "name": "HITEDU",
+  "description": "HITEDU 智能教育平台，具备AI辅助工具、视频点播和智能语音笔记功能。",
   "requestFramePermissions": [
     "microphone"
   ]

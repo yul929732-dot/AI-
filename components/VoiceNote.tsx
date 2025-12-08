@@ -1,5 +1,5 @@
 import React, { useState, useRef, useCallback } from 'react';
-import { Mic, MicOff, FileText, Loader2, Sparkles } from 'lucide-react';
+import { Mic, MicOff, FileText, Loader2, Sparkles, AlertCircle } from 'lucide-react';
 import { Button } from './Button';
 import { geminiService } from '../services/geminiService';
 
@@ -38,7 +38,7 @@ export const VoiceNote: React.FC<VoiceNoteProps> = ({ onSaveNote }) => {
       setIsRecording(true);
     } catch (error) {
       console.error("Error accessing microphone:", error);
-      alert("Could not access microphone. Please check permissions.");
+      alert("无法访问麦克风，请检查权限。");
     }
   };
 
@@ -62,19 +62,24 @@ export const VoiceNote: React.FC<VoiceNoteProps> = ({ onSaveNote }) => {
   };
 
   return (
-    <div className="bg-gradient-to-r from-indigo-50 to-blue-50 border border-indigo-100 rounded-xl p-4 shadow-sm">
-      <div className="flex items-center justify-between mb-3">
-        <h3 className="font-semibold text-indigo-900 flex items-center gap-2">
-          <Sparkles className="w-4 h-4 text-indigo-500" />
-          AI Smart Notes
+    <div className="relative overflow-hidden bg-white/80 backdrop-blur-sm border border-indigo-100 rounded-2xl p-5 shadow-lg shadow-indigo-100/50 transition-all duration-300 hover:shadow-xl hover:border-indigo-200">
+      {/* Decorative gradient blob */}
+      <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-indigo-100 to-purple-100 rounded-full blur-2xl opacity-60 -z-10 transform translate-x-10 -translate-y-10" />
+
+      <div className="flex items-center justify-between mb-4">
+        <h3 className="font-bold text-gray-900 flex items-center gap-2.5">
+          <div className="p-1.5 bg-indigo-100 rounded-lg text-indigo-600">
+            <Sparkles className="w-4 h-4" />
+          </div>
+          AI 智能笔记
         </h3>
-        <span className="text-xs text-indigo-600 bg-indigo-100 px-2 py-1 rounded-full">
+        <span className="text-[10px] font-semibold tracking-wider text-indigo-600 bg-indigo-50 border border-indigo-100 px-2.5 py-1 rounded-full uppercase">
           Gemini 2.5 Flash
         </span>
       </div>
       
-      <p className="text-sm text-gray-600 mb-4">
-        Record your thoughts about this video and let AI transcribe them instantly.
+      <p className="text-sm text-gray-500 mb-6 leading-relaxed">
+        录制您对该视频的想法，让 AI 立即为您转录成文字。
       </p>
 
       <div className="flex gap-3">
@@ -83,29 +88,34 @@ export const VoiceNote: React.FC<VoiceNoteProps> = ({ onSaveNote }) => {
             onClick={startRecording} 
             disabled={isProcessing}
             variant="outline"
-            className="w-full flex items-center justify-center gap-2"
+            className="w-full flex items-center justify-center gap-2 py-3 bg-white hover:bg-indigo-50/50"
           >
             {isProcessing ? (
               <>
-                <Loader2 className="animate-spin w-4 h-4" />
-                Transcribing...
+                <Loader2 className="animate-spin w-4 h-4 text-indigo-600" />
+                <span className="text-indigo-600">正在转录...</span>
               </>
             ) : (
               <>
                 <Mic className="w-4 h-4 text-indigo-600" />
-                Start Recording
+                <span className="text-gray-700">开始录音</span>
               </>
             )}
           </Button>
         ) : (
-          <Button 
-            onClick={stopRecording} 
-            variant="danger"
-            className="w-full flex items-center justify-center gap-2 animate-pulse"
-          >
-            <MicOff className="w-4 h-4" />
-            Stop Recording
-          </Button>
+          <div className="w-full flex flex-col items-center gap-3">
+            <div className="relative">
+              <div className="absolute inset-0 rounded-full pulse-ring"></div>
+              <Button 
+                onClick={stopRecording} 
+                variant="danger"
+                className="relative z-10 rounded-full w-12 h-12 flex items-center justify-center p-0"
+              >
+                <div className="w-4 h-4 bg-white rounded-sm" />
+              </Button>
+            </div>
+            <span className="text-xs font-medium text-red-500 animate-pulse">正在录音中...</span>
+          </div>
         )}
       </div>
     </div>
