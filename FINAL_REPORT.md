@@ -161,4 +161,19 @@ HITEDU 是一个集成了 Google Gemini 生成式 AI 技术的现代化全栈教
     *   在“班级学情”页签，查看全班的学习活跃度热力图。
 
 ---
+
+## 3. 团队分工说明 (Team Division)
+
+本系统功能模块众多，技术栈跨度大，团队共 **6名成员** 进行了详细的分工。以下是具体职责分配：
+
+| 成员 | 角色 | 负责模块 | 技术/工作内容细节 |
+| :--- | :--- | :--- | :--- |
+| **组长 (我)** | **系统架构师 & AI 核心开发** | **系统架构、AI 引擎、核心业务逻辑** | 1. 搭建 React+Express 全栈框架及环境配置。<br>2. **Gemini SDK 深度集成**：封装 `geminiService.ts`，实现文本生成、多模态识图、JSON 结构化输出控制。<br>3. **后端核心逻辑**：设计 API 接口、数据存储方案 (`db.json`) 及跨域/文件上传处理。<br>4. **核心 AI 模块**：独立开发“AI 智能出题”、“AI 作业批改”、“智能笔记转录”及“动态学情画像”功能。<br>5. 解决 RAG 上下文注入与 Prompt Engineering 优化等关键技术难点。 |
+| **成员 A** | 前端 UI/UX 设计师 | 界面视觉与交互 | 1. 负责全站 "Liquid Glass" (液态毛玻璃) 视觉风格设计与 CSS 实现。<br>2. 开发 `Layout.tsx` 及全局动画效果 (`animate-gradient-xy`)。<br>3. 适配 Tailwind CSS 响应式布局，确保移动端与 PC 端兼容性。 |
+| **成员 B** | 3D 可视化开发 | 首页与特效组件 | 1. 基于 Three.js / React Three Fiber 开发 `LiquidChrome.tsx` 背景组件。<br>2. 优化 WebGL 渲染性能，处理 Shader 材质与光照效果。 |
+| **成员 C** | 业务模块开发 (学生端) | 个人中心与课程表 | 1. 开发 `StudentProfile.tsx`，实现数据图表 (Chart) 渲染。<br>2. 开发 `Schedule.tsx`，实现课程表的增删改查及 Excel 导入交互。<br>3. 实现错题本的前端展示逻辑。 |
+| **成员 D** | 业务模块开发 (多媒体) | 视频播放器与助教 | 1. 封装 `SmartVideoPlayer.tsx`，实现视频进度同步、章节跳转。<br>2. 开发 `OnlineTutoring.tsx`，模拟名师直播与 FAQ 检索界面。<br>3. 处理字幕同步渲染逻辑。 |
+| **成员 E** | 业务模块开发 (教师端) & 测试 | 教师后台与系统测试 | 1. 开发 `TeacherDashboard.tsx`，实现课程发布表单与班级数据统计。<br>2. 负责编写功能测试用例，进行黑盒测试。<br>3. 编写用户操作手册，录制演示视频。 |
+
+---
 **Designed by HITEDU Team** | Powering Education with Intelligence.
