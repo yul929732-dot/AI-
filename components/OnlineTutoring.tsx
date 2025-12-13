@@ -3,7 +3,6 @@ import React, { useState } from 'react';
 import { Bot, Calendar, MessageCircle, Search, Video, User, Star, Clock, CheckCircle, ArrowRight, ArrowLeft } from 'lucide-react';
 import { Button } from './Button';
 import { AIAssistant } from './AIAssistant'; // Reuse internal logic but might need refactor if strictly separated
-import { Input } from './Input';
 
 interface OnlineTutoringProps {
     onBack: () => void;

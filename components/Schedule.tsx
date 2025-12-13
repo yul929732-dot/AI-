@@ -2,7 +2,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Plus, Trash2, Save, Calendar, Upload } from 'lucide-react';
 import { Button } from './Button';
-import { Input } from './Input';
 import { ScheduleItem } from '../types';
 import { api } from '../services/api';
 
