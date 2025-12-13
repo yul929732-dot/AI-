@@ -1,8 +1,9 @@
 
 import React, { useState, useEffect, useRef } from 'react';
-import { Sparkles, ArrowLeft, CheckCircle2, XCircle, BrainCircuit, ChevronRight, HelpCircle, FileText, Upload, Clock, Settings2, PlayCircle } from 'lucide-react';
+import { Sparkles, ArrowLeft, CheckCircle2, XCircle, BrainCircuit, ChevronRight, HelpCircle, FileText, Upload, Clock, Settings2, PlayCircle, Save } from 'lucide-react';
 import { Button } from './Button';
 import { geminiService } from '../services/geminiService';
+import { api } from '../services/api';
 import { QuizData, QuizQuestion, QuizConfig } from '../types';
 
 interface AIQuizProps {
@@ -14,6 +15,7 @@ type QuizState = 'CONFIG' | 'LOADING' | 'TAKING' | 'RESULT';
 
 export const AIQuiz: React.FC<AIQuizProps> = ({ onBack, onMistake }) => {
   const [state, setState] = useState<QuizState>('CONFIG');
+  const [userId, setUserId] = useState<string | null>(null);
   
   // Configuration
   const [config, setConfig] = useState<QuizConfig>({
@@ -32,12 +34,19 @@ export const AIQuiz: React.FC<AIQuizProps> = ({ onBack, onMistake }) => {
   const [subjectiveAnswer, setSubjectiveAnswer] = useState('');
   const [isAnswerRevealed, setIsAnswerRevealed] = useState(false);
   const [score, setScore] = useState(0);
+  const [isSaving, setIsSaving] = useState(false);
   
   // Timer State
   const [timeLeft, setTimeLeft] = useState(0); // in seconds
   const timerRef = useRef<number | null>(null);
 
   // --- Effects ---
+  useEffect(() => {
+     api.getSession().then(user => {
+         if(user) setUserId(user.id);
+     });
+  }, []);
+
   useEffect(() => {
     if (state === 'TAKING' && timeLeft > 0) {
       timerRef.current = window.setInterval(() => {
@@ -58,7 +67,26 @@ export const AIQuiz: React.FC<AIQuizProps> = ({ onBack, onMistake }) => {
 
   const handleSubmitQuizEarly = () => {
      alert("时间到！测验结束。");
-     setState('RESULT');
+     finishQuiz();
+  };
+
+  const finishQuiz = async () => {
+      setState('RESULT');
+      // Auto save result
+      if (userId && quizData) {
+          setIsSaving(true);
+          try {
+             await api.saveQuizResult(userId, {
+                 topic: config.topic || '文档测验',
+                 score: score,
+                 totalQuestions: quizData.questions.filter(q => q.type === 'multiple_choice').length
+             });
+          } catch(e) {
+              console.error("Failed to save result", e);
+          } finally {
+              setIsSaving(false);
+          }
+      }
   };
 
   // --- Handlers ---
@@ -104,7 +132,7 @@ export const AIQuiz: React.FC<AIQuizProps> = ({ onBack, onMistake }) => {
     if (currentQuestionIndex < quizData.questions.length - 1) {
       setCurrentQuestionIndex(prev => prev + 1);
     } else {
-      setState('RESULT');
+      finishQuiz();
     }
   };
 
@@ -436,7 +464,13 @@ export const AIQuiz: React.FC<AIQuizProps> = ({ onBack, onMistake }) => {
         </div>
         
         <p className="text-xs text-gray-500 mb-8 px-6 leading-relaxed relative z-10">
-           主观题已通过 AI 解析展示，请参考解析进行自我评估。<br/>错题已自动加入您的智能错题本。
+           {isSaving ? (
+               <span className="flex items-center justify-center gap-1 text-indigo-600 font-medium">
+                   <Save className="w-3 h-3 animate-bounce" /> 正在同步成绩至云端...
+               </span>
+           ) : (
+               <span>成绩已自动保存至学习档案。<br/>错题已自动加入您的智能错题本。</span>
+           )}
         </p>
         
         <div className="space-y-3 relative z-10">

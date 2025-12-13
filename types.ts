@@ -78,7 +78,7 @@ export enum ViewState {
   REGISTER = 'REGISTER',
   DASHBOARD = 'DASHBOARD',
   VIDEO_PLAYER = 'VIDEO_PLAYER',
-  ONLINE_TUTORING = 'ONLINE_TUTORING', // Replaces AI_ASSISTANT
+  ONLINE_TUTORING = 'ONLINE_TUTORING', 
   AI_QUIZ = 'AI_QUIZ',
   STUDENT_PROFILE = 'STUDENT_PROFILE',
   TEACHER_DASHBOARD = 'TEACHER_DASHBOARD',
@@ -135,6 +135,14 @@ export interface MistakeRecord {
   topic: string;
 }
 
+export interface QuizResult {
+  id: string;
+  topic: string;
+  score: number;
+  totalQuestions: number;
+  timestamp: number;
+}
+
 // --- Schedule Types ---
 export interface ScheduleItem {
   id: string;
@@ -164,6 +172,13 @@ export interface ReportAnalysis {
   overallScore: number;
   suggestions: string[];
   comparison?: string;
+}
+
+export interface SavedReport {
+  id: string;
+  fileName: string;
+  analysis: ReportAnalysis;
+  timestamp: number;
 }
 
 // --- Courseware Types ---

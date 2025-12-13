@@ -1,8 +1,9 @@
 
-import React, { useState } from 'react';
-import { FileText, Upload, Sparkles, BarChart2, CheckCircle, ArrowLeft, Loader2, Award } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { FileText, Upload, Sparkles, BarChart2, CheckCircle, ArrowLeft, Loader2, Award, Save } from 'lucide-react';
 import { Button } from './Button';
 import { geminiService } from '../services/geminiService';
+import { api } from '../services/api';
 import { ReportAnalysis } from '../types';
 
 interface AIReportProps {
@@ -14,6 +15,14 @@ export const AIReport: React.FC<AIReportProps> = ({ onBack }) => {
   const [fileName, setFileName] = useState<string>('');
   const [analysis, setAnalysis] = useState<ReportAnalysis | null>(null);
   const [loading, setLoading] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [userId, setUserId] = useState<string | null>(null);
+
+  useEffect(() => {
+     api.getSession().then(user => {
+         if(user) setUserId(user.id);
+     });
+  }, []);
 
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -38,6 +47,22 @@ export const AIReport: React.FC<AIReportProps> = ({ onBack }) => {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleSaveReport = async () => {
+      if (!analysis || !userId) return;
+      setSaving(true);
+      try {
+          await api.saveReport(userId, {
+              fileName: fileName,
+              analysis: analysis
+          });
+          alert("报告已保存至云端！");
+      } catch(e) {
+          alert("保存失败");
+      } finally {
+          setSaving(false);
+      }
   };
 
   const renderScoreBar = (label: string, score: number, color: string) => (
@@ -115,6 +140,13 @@ export const AIReport: React.FC<AIReportProps> = ({ onBack }) => {
                         {renderScoreBar("逻辑结构完整性", analysis.scores.logic, "bg-blue-500")}
                         {renderScoreBar("知识点覆盖率", analysis.scores.coverage, "bg-purple-500")}
                         {renderScoreBar("语言规范性", analysis.scores.style, "bg-orange-500")}
+                        
+                        <div className="mt-4 pt-4 border-t border-gray-100">
+                             <Button onClick={handleSaveReport} disabled={saving} className="w-full bg-slate-800 hover:bg-slate-900 text-white">
+                                 {saving ? <Loader2 className="w-4 h-4 animate-spin mr-2"/> : <Save className="w-4 h-4 mr-2" />}
+                                 {saving ? '正在保存...' : '保存报告到云端'}
+                             </Button>
+                        </div>
                     </div>
 
                     <div className="bg-white rounded-[32px] p-8 shadow-xl border border-gray-100 animate-in fade-in slide-in-from-right-4 delay-100">

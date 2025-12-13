@@ -10,6 +10,7 @@ const PORT = 3001;
 const DB_FILE = path.join(__dirname, 'db.json');
 
 app.use(cors());
+// Increased limit for large payloads like images or report text
 app.use(bodyParser.json({ limit: '50mb' }));
 
 // 默认的初始数据库结构
@@ -103,7 +104,9 @@ const defaultDb = {
   ],
   progress: {},
   mistakes: {},
-  schedules: {}
+  schedules: {},
+  quizResults: {}, // Stores quiz scores
+  reports: {} // Stores AI analysis reports
 };
 
 // 初始化数据库：如果文件不存在，则创建并写入默认数据
@@ -113,6 +116,11 @@ if (fs.existsSync(DB_FILE)) {
     const data = fs.readFileSync(DB_FILE, 'utf8');
     db = JSON.parse(data);
     console.log("Loaded existing database from db.json");
+    
+    // Ensure new fields exist if loading old db
+    if (!db.quizResults) db.quizResults = {};
+    if (!db.reports) db.reports = {};
+
   } catch (e) {
     console.error("Error reading DB file, creating new one.");
     saveDB();
@@ -187,11 +195,23 @@ app.post('/api/users/:id/avatar', (req, res) => {
 });
 
 app.get('/api/users/:id/stats', (req, res) => {
-    // Mock analytics calculation
+    // Mock analytics calculation based on real data
+    const userId = req.params.id;
+    const results = db.quizResults[userId] || [];
+    
+    // Calculate average accuracy
+    let accuracy = 0;
+    if (results.length > 0) {
+        const total = results.reduce((acc, curr) => acc + (curr.score / curr.totalQuestions), 0);
+        accuracy = Math.floor((total / results.length) * 100);
+    } else {
+        accuracy = Math.floor(Math.random() * 30) + 60; // fallback random if no data
+    }
+
     const stats = {
         totalStudyHours: Math.floor(Math.random() * 50) + 10,
         completedCourses: Math.floor(Math.random() * 8),
-        quizAccuracy: Math.floor(Math.random() * 30) + 60,
+        quizAccuracy: accuracy,
         weakPoints: ['量子物理', '高阶函数', '现代艺术流派'].sort(() => 0.5 - Math.random()).slice(0, 2),
         learningTrend: Array.from({length: 7}, () => Math.floor(Math.random() * 120))
     };
@@ -252,6 +272,44 @@ app.post('/api/users/:id/mistakes', (req, res) => {
   db.mistakes[userId].unshift(newMistake);
   saveDB();
   res.json(newMistake);
+});
+
+// Quiz Results
+app.get('/api/users/:id/quiz-results', (req, res) => {
+  res.json(db.quizResults[req.params.id] || []);
+});
+
+app.post('/api/users/:id/quiz-results', (req, res) => {
+  const userId = req.params.id;
+  if (!db.quizResults[userId]) db.quizResults[userId] = [];
+  
+  const newResult = {
+      ...req.body,
+      id: Math.random().toString(36).substr(2, 9),
+      timestamp: Date.now()
+  };
+  db.quizResults[userId].unshift(newResult);
+  saveDB();
+  res.json(newResult);
+});
+
+// Reports
+app.get('/api/users/:id/reports', (req, res) => {
+  res.json(db.reports[req.params.id] || []);
+});
+
+app.post('/api/users/:id/reports', (req, res) => {
+  const userId = req.params.id;
+  if (!db.reports[userId]) db.reports[userId] = [];
+  
+  const newReport = {
+      ...req.body,
+      id: Math.random().toString(36).substr(2, 9),
+      timestamp: Date.now()
+  };
+  db.reports[userId].unshift(newReport);
+  saveDB();
+  res.json(newReport);
 });
 
 // Schedule

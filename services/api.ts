@@ -1,5 +1,5 @@
 
-import { User, Video, Role, ScheduleItem, MistakeRecord, LearningStats } from '../types';
+import { User, Video, Role, ScheduleItem, MistakeRecord, LearningStats, QuizResult, SavedReport } from '../types';
 import { mockBackend } from './mockBackend';
 
 const API_BASE = 'http://localhost:3001/api';
@@ -123,16 +123,6 @@ export const api = {
   },
 
   async getVideoProgress(userId: string, videoId: string): Promise<number> {
-    // Fallback logic for progress might return object in API but number in mock? 
-    // Wait, mockBackend returns number. api (prev impl) returned number via .timestamp access in the caller wrapper?
-    // Let's check previous api.ts implementation:
-    // async getVideoProgress(...) { const data = await fetch...; return data.timestamp; }
-    // We need to normalize the return type for withFallback.
-    
-    // The issue: withFallback assumes apiCall returns JSON that matches mockCall return type.
-    // API returns { timestamp: 123 }, Mock returns 123.
-    // We need to adapt the API call result in the thunk or handle it.
-    
     try {
         const res = await fetch(`${API_BASE}/users/${userId}/progress/${videoId}`);
         const data = await handleResponse(res);
@@ -162,6 +152,37 @@ export const api = {
       () => fetch(`${API_BASE}/users/${userId}/mistakes`),
       () => mockBackend.getMistakes(userId)
     );
+  },
+
+  // --- QUIZ RESULTS (NEW) ---
+  async saveQuizResult(userId: string, result: Omit<QuizResult, 'id' | 'timestamp'>): Promise<void> {
+      return withFallback(
+          () => fetch(`${API_BASE}/users/${userId}/quiz-results`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify(result)
+          }),
+          () => mockBackend.saveQuizResult(userId, result)
+      );
+  },
+
+  // --- REPORTS (NEW) ---
+  async saveReport(userId: string, report: Omit<SavedReport, 'id' | 'timestamp'>): Promise<void> {
+      return withFallback(
+          () => fetch(`${API_BASE}/users/${userId}/reports`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify(report)
+          }),
+          () => mockBackend.saveReport(userId, report)
+      );
+  },
+  
+  async getReports(userId: string): Promise<SavedReport[]> {
+      return withFallback(
+          () => fetch(`${API_BASE}/users/${userId}/reports`),
+          () => mockBackend.getReports(userId)
+      );
   },
 
   // --- SCHEDULE ---

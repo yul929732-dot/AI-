@@ -1,5 +1,5 @@
 
-import { User, Video, Role, ScheduleItem, MistakeRecord, LearningStats, VideoProgress } from '../types';
+import { User, Video, Role, ScheduleItem, MistakeRecord, LearningStats, VideoProgress, QuizResult, SavedReport } from '../types';
 import { MOCK_VIDEOS } from '../constants';
 
 const USERS_KEY = 'hitedu_users';
@@ -8,6 +8,8 @@ const VIDEOS_KEY = 'hitedu_videos';
 const MISTAKES_KEY = 'hitedu_mistakes';
 const SCHEDULE_KEY = 'hitedu_schedule';
 const PROGRESS_KEY = 'hitedu_video_progress';
+const QUIZ_RESULTS_KEY = 'hitedu_quiz_results';
+const REPORTS_KEY = 'hitedu_reports';
 
 // Simulate network delay
 const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
@@ -215,6 +217,45 @@ export const mockBackend = {
     return allMistakes[userId] || [];
   },
 
+  // --- QUIZ RESULTS (Student) ---
+  async saveQuizResult(userId: string, result: Omit<QuizResult, 'id' | 'timestamp'>): Promise<void> {
+    const raw = localStorage.getItem(QUIZ_RESULTS_KEY);
+    const allResults: Record<string, QuizResult[]> = raw ? JSON.parse(raw) : {};
+    
+    if (!allResults[userId]) allResults[userId] = [];
+    
+    allResults[userId].unshift({
+      ...result,
+      id: Math.random().toString(36).substr(2, 9),
+      timestamp: Date.now()
+    });
+    
+    localStorage.setItem(QUIZ_RESULTS_KEY, JSON.stringify(allResults));
+  },
+
+  // --- REPORTS (Student) ---
+  async saveReport(userId: string, report: Omit<SavedReport, 'id' | 'timestamp'>): Promise<void> {
+    const raw = localStorage.getItem(REPORTS_KEY);
+    const allReports: Record<string, SavedReport[]> = raw ? JSON.parse(raw) : {};
+    
+    if (!allReports[userId]) allReports[userId] = [];
+    
+    allReports[userId].unshift({
+      ...report,
+      id: Math.random().toString(36).substr(2, 9),
+      timestamp: Date.now()
+    });
+    
+    localStorage.setItem(REPORTS_KEY, JSON.stringify(allReports));
+  },
+
+  async getReports(userId: string): Promise<SavedReport[]> {
+     await delay(400);
+     const raw = localStorage.getItem(REPORTS_KEY);
+     const allReports: Record<string, SavedReport[]> = raw ? JSON.parse(raw) : {};
+     return allReports[userId] || [];
+  },
+
   // --- SCHEDULE ---
   async saveSchedule(userId: string, items: ScheduleItem[]): Promise<void> {
     const raw = localStorage.getItem(SCHEDULE_KEY);
@@ -233,10 +274,21 @@ export const mockBackend = {
   // --- ANALYTICS (Mock) ---
   async getUserStats(userId: string): Promise<LearningStats> {
     await delay(600);
+    // Try to calculate accuracy from quiz results if available
+    const raw = localStorage.getItem(QUIZ_RESULTS_KEY);
+    const allResults: Record<string, QuizResult[]> = raw ? JSON.parse(raw) : {};
+    const userResults = allResults[userId] || [];
+    
+    let accuracy = 65;
+    if (userResults.length > 0) {
+        const total = userResults.reduce((acc, curr) => acc + (curr.score / curr.totalQuestions), 0);
+        accuracy = Math.floor((total / userResults.length) * 100);
+    }
+
     return {
       totalStudyHours: Math.floor(Math.random() * 50) + 10,
       completedCourses: Math.floor(Math.random() * 8),
-      quizAccuracy: Math.floor(Math.random() * 30) + 60,
+      quizAccuracy: accuracy,
       weakPoints: ['量子物理', '高阶函数', '现代艺术流派'].sort(() => 0.5 - Math.random()).slice(0, 2),
       learningTrend: Array.from({length: 7}, () => Math.floor(Math.random() * 120))
     };
