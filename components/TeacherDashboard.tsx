@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { User, Video } from '../types';
 import { Button } from './Button';
@@ -42,6 +41,7 @@ export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({ user, onVide
         thumbnail: `https://picsum.photos/seed/${Date.now()}/800/450`, // Mock thumbnail
         url: 'http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/TearsOfSteel.mp4', // Mock video URL
         duration: '10:00',
+        durationSec: 600,
         uploaderId: user.id
       });
       alert("发布成功！");

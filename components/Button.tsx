@@ -1,7 +1,8 @@
+
 import React from 'react';
 
 interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
-  variant?: 'primary' | 'secondary' | 'danger' | 'outline' | 'ghost';
+  variant?: 'primary' | 'secondary' | 'danger' | 'outline' | 'ghost' | 'glass';
   size?: 'sm' | 'md' | 'lg';
   isLoading?: boolean;
 }
@@ -15,14 +16,16 @@ export const Button: React.FC<ButtonProps> = ({
   disabled,
   ...props 
 }) => {
-  const baseStyles = "inline-flex items-center justify-center rounded-xl font-semibold transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-60 disabled:cursor-not-allowed active:scale-95 shadow-sm hover:shadow-md";
+  const baseStyles = "inline-flex items-center justify-center rounded-xl font-semibold transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-60 disabled:cursor-not-allowed active:scale-95 shadow-sm";
   
   const variants = {
-    primary: "bg-gradient-to-r from-indigo-600 to-indigo-500 text-white hover:from-indigo-700 hover:to-indigo-600 focus:ring-indigo-500 border border-transparent",
+    primary: "bg-gradient-to-r from-indigo-600 to-indigo-500 text-white hover:from-indigo-700 hover:to-indigo-600 focus:ring-indigo-500 border border-transparent hover:shadow-indigo-500/25 hover:shadow-lg",
     secondary: "bg-white text-gray-900 border border-gray-200 hover:bg-gray-50 hover:border-gray-300 focus:ring-gray-500",
     danger: "bg-gradient-to-r from-red-600 to-red-500 text-white hover:from-red-700 hover:to-red-600 focus:ring-red-500 border border-transparent",
     outline: "border-2 border-indigo-100 bg-transparent text-indigo-700 hover:bg-indigo-50 hover:border-indigo-200 focus:ring-indigo-500 shadow-none",
-    ghost: "bg-transparent text-gray-600 hover:bg-gray-100 hover:text-gray-900 shadow-none hover:shadow-none"
+    ghost: "bg-transparent text-gray-600 hover:bg-gray-100 hover:text-gray-900 shadow-none hover:shadow-none",
+    // New Liquid Glass Variant
+    glass: "glass-card text-slate-700 border-white/60 hover:bg-white/80 hover:text-indigo-700 backdrop-blur-xl shadow-sm hover:shadow-md"
   };
 
   const sizes = {

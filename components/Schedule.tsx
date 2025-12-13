@@ -1,6 +1,6 @@
 
-import React, { useState, useEffect } from 'react';
-import { Plus, Trash2, Save, Calendar } from 'lucide-react';
+import React, { useState, useEffect, useRef } from 'react';
+import { Plus, Trash2, Save, Calendar, Upload } from 'lucide-react';
 import { Button } from './Button';
 import { Input } from './Input';
 import { ScheduleItem } from '../types';
@@ -22,6 +22,7 @@ export const Schedule: React.FC<ScheduleProps> = ({ userId, isEditable }) => {
   const [loading, setLoading] = useState(true);
   const [editingSlot, setEditingSlot] = useState<{day: string, time: string} | null>(null);
   const [newItemText, setNewItemText] = useState('');
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     loadSchedule();
@@ -63,6 +64,37 @@ export const Schedule: React.FC<ScheduleProps> = ({ userId, isEditable }) => {
     await mockBackend.saveSchedule(userId, newSchedule);
   };
 
+  // Mock parsing of Excel
+  const handleImportExcel = (e: React.ChangeEvent<HTMLInputElement>) => {
+      if (e.target.files?.[0]) {
+          const file = e.target.files[0];
+          // In a real app, use 'xlsx' library to parse. Here we mock a successful import.
+          if (confirm(`是否确认从 ${file.name} 导入课程表？这将覆盖当前课表。`)) {
+             setLoading(true);
+             setTimeout(() => {
+                 // Generate a random schedule
+                 const mockSchedule: ScheduleItem[] = [];
+                 DAYS.forEach(day => {
+                     TIME_SLOTS.forEach(time => {
+                         if (Math.random() > 0.6) {
+                             mockSchedule.push({
+                                 id: Math.random().toString(),
+                                 day,
+                                 timeSlot: time,
+                                 courseName: ['高等数学', '大学物理', '英语视听说', '计算机基础'][Math.floor(Math.random()*4)]
+                             });
+                         }
+                     });
+                 });
+                 setSchedule(mockSchedule);
+                 mockBackend.saveSchedule(userId, mockSchedule);
+                 setLoading(false);
+                 alert("导入成功！");
+             }, 1000);
+          }
+      }
+  };
+
   const getItem = (day: string, time: string) => schedule.find(s => s.day === day && s.timeSlot === time);
 
   if (loading) return <div className="p-10 text-center text-slate-400">加载课程表中...</div>;
@@ -74,7 +106,26 @@ export const Schedule: React.FC<ScheduleProps> = ({ userId, isEditable }) => {
           <Calendar className="w-5 h-5 text-indigo-600" />
           我的课程表
         </h3>
-        {isEditable && <span className="text-xs text-slate-400 bg-white/50 px-2 py-1 rounded-lg">点击空白添加，点击卡片删除</span>}
+        <div className="flex items-center gap-2">
+            {isEditable && (
+                <>
+                <button 
+                  onClick={() => fileInputRef.current?.click()}
+                  className="text-xs font-bold text-indigo-600 bg-indigo-50 px-3 py-1.5 rounded-lg border border-indigo-100 flex items-center hover:bg-indigo-100 transition-colors"
+                >
+                    <Upload className="w-3 h-3 mr-2" /> 导入 Excel
+                </button>
+                <input 
+                    type="file" 
+                    accept=".xlsx,.xls" 
+                    ref={fileInputRef} 
+                    className="hidden" 
+                    onChange={handleImportExcel} 
+                />
+                </>
+            )}
+            <span className="text-xs text-slate-400 bg-white/50 px-2 py-1 rounded-lg">点击空白添加，点击卡片删除</span>
+        </div>
       </div>
 
       <div className="overflow-x-auto pb-2">

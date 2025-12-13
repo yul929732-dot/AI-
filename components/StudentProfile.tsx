@@ -4,7 +4,7 @@ import { User, MistakeRecord, LearningStats } from '../types';
 import { mockBackend } from '../services/mockBackend';
 import { geminiService } from '../services/geminiService';
 import { Schedule } from './Schedule';
-import { BarChart3, AlertCircle, Clock, BookOpen, BrainCircuit, XCircle, Sparkles, Camera, Loader2, Upload, Image as ImageIcon } from 'lucide-react';
+import { BarChart3, AlertCircle, Clock, BookOpen, BrainCircuit, XCircle, Sparkles, Camera, Loader2, Upload, Download } from 'lucide-react';
 
 interface StudentProfileProps {
   user: User;
@@ -85,6 +85,33 @@ export const StudentProfile: React.FC<StudentProfileProps> = ({ user }) => {
       console.error(e);
       alert("更新头像失败");
     }
+  };
+
+  const handleExportMistakes = () => {
+      if (mistakes.length === 0) return;
+
+      let content = "HITEDU 智能错题本导出\n\n";
+      mistakes.forEach((m, idx) => {
+          content += `【第${idx + 1}题】[${m.topic}] ${new Date(m.timestamp).toLocaleDateString()}\n`;
+          content += `题目：${m.question.question}\n`;
+          content += `错选：${m.wrongAnswer}\n`;
+          if (m.question.type === 'multiple_choice') {
+              const correctLabel = String.fromCharCode(65 + (m.question.correctAnswer || 0));
+              content += `正解：${correctLabel}\n`;
+          }
+          content += `解析：${m.question.explanation}\n`;
+          content += "----------------------------------------\n\n";
+      });
+
+      const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `错题本_${user.username}_${new Date().toLocaleDateString()}.txt`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
   };
 
   return (
@@ -214,12 +241,23 @@ export const StudentProfile: React.FC<StudentProfileProps> = ({ user }) => {
 
       {/* Mistake Notebook */}
       <div className="glass-panel p-8 rounded-[32px]">
-        <h3 className="text-xl font-bold text-slate-800 mb-6 flex items-center gap-3">
-          <div className="p-2 bg-red-100 rounded-xl text-red-500">
-             <XCircle className="w-5 h-5" />
-          </div>
-          智能错题本
-        </h3>
+        <div className="flex justify-between items-center mb-6">
+            <h3 className="text-xl font-bold text-slate-800 flex items-center gap-3">
+            <div className="p-2 bg-red-100 rounded-xl text-red-500">
+                <XCircle className="w-5 h-5" />
+            </div>
+            智能错题本
+            </h3>
+            {mistakes.length > 0 && (
+                <button 
+                  onClick={handleExportMistakes}
+                  className="flex items-center text-sm font-bold text-indigo-600 hover:bg-indigo-50 px-3 py-1.5 rounded-lg transition-colors"
+                >
+                    <Download className="w-4 h-4 mr-2" /> 导出错题
+                </button>
+            )}
+        </div>
+        
         {mistakes.length === 0 ? (
            <div className="text-center py-12 text-slate-400 bg-white/40 rounded-3xl border-2 border-dashed border-slate-200">
              恭喜！您暂时没有错题记录。

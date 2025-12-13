@@ -1,5 +1,5 @@
 
-import { User, Video, Role, ScheduleItem, MistakeRecord, LearningStats } from '../types';
+import { User, Video, Role, ScheduleItem, MistakeRecord, LearningStats, VideoProgress } from '../types';
 import { MOCK_VIDEOS } from '../constants';
 
 const USERS_KEY = 'hitedu_users';
@@ -7,6 +7,7 @@ const SESSION_KEY = 'hitedu_session';
 const VIDEOS_KEY = 'hitedu_videos';
 const MISTAKES_KEY = 'hitedu_mistakes';
 const SCHEDULE_KEY = 'hitedu_schedule';
+const PROGRESS_KEY = 'hitedu_video_progress';
 
 // Simulate network delay
 const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
@@ -58,12 +59,9 @@ export const mockBackend = {
     const usersRaw = localStorage.getItem(USERS_KEY);
     const users: any[] = usersRaw ? JSON.parse(usersRaw) : [];
     
-    // Updated login logic: find user by username, password AND role.
-    // This allows the same credentials to log in to different accounts based on selected role.
     const user = users.find(u => u.username === username && u.password === password && u.role === role);
     
     if (!user) {
-       // Fallback for clearer error message
        const exists = users.find(u => u.username === username && u.password === password);
        if (exists && exists.role !== role) {
           throw new Error(`该账号不能以${role === 'teacher' ? '教师' : '学生'}身份登录`);
@@ -88,10 +86,6 @@ export const mockBackend = {
     const usersRaw = localStorage.getItem(USERS_KEY);
     const users: any[] = usersRaw ? JSON.parse(usersRaw) : [];
 
-    // Check if username exists FOR THAT ROLE. 
-    // Usually usernames are unique globally, but for this mock requirement we allow duplicates across roles if needed,
-    // though ideally we'd keep them unique. For now, strict check on global username to avoid confusion, 
-    // EXCEPT for the pre-seeded account which violates this.
     if (users.find(u => u.username === username && u.role === role)) {
       throw new Error("该角色下的用户名已存在");
     }
@@ -140,7 +134,6 @@ export const mockBackend = {
       users[index].avatar = avatarUrl;
       localStorage.setItem(USERS_KEY, JSON.stringify(users));
       
-      // Update session too
       const sessionRaw = localStorage.getItem(SESSION_KEY);
       if (sessionRaw) {
         const sessionUser = JSON.parse(sessionRaw);
@@ -155,7 +148,7 @@ export const mockBackend = {
     throw new Error("User not found");
   },
 
-  // --- VIDEO DATA ---
+  // --- VIDEO DATA & PROGRESS ---
   async getVideos(): Promise<Video[]> {
     initVideos();
     await delay(500);
@@ -171,9 +164,32 @@ export const mockBackend = {
       id: Math.random().toString(36).substr(2, 9),
       uploadDate: Date.now()
     };
-    videos.unshift(newVideo); // Add to top
+    videos.unshift(newVideo);
     localStorage.setItem(VIDEOS_KEY, JSON.stringify(videos));
     return newVideo;
+  },
+
+  async saveVideoProgress(userId: string, videoId: string, timestamp: number): Promise<void> {
+    const raw = localStorage.getItem(PROGRESS_KEY);
+    const allProgress: Record<string, VideoProgress> = raw ? JSON.parse(raw) : {};
+    const key = `${userId}_${videoId}`;
+    
+    allProgress[key] = {
+      videoId,
+      timestamp,
+      completed: false, // Could add logic for >90%
+      lastUpdated: Date.now()
+    };
+    
+    localStorage.setItem(PROGRESS_KEY, JSON.stringify(allProgress));
+  },
+
+  async getVideoProgress(userId: string, videoId: string): Promise<number> {
+    // await delay(100); // Fast load for UX
+    const raw = localStorage.getItem(PROGRESS_KEY);
+    const allProgress: Record<string, VideoProgress> = raw ? JSON.parse(raw) : {};
+    const key = `${userId}_${videoId}`;
+    return allProgress[key]?.timestamp || 0;
   },
 
   // --- MISTAKES (Student) ---
@@ -217,13 +233,12 @@ export const mockBackend = {
   // --- ANALYTICS (Mock) ---
   async getUserStats(userId: string): Promise<LearningStats> {
     await delay(600);
-    // Return mock stats with some randomization
     return {
       totalStudyHours: Math.floor(Math.random() * 50) + 10,
       completedCourses: Math.floor(Math.random() * 8),
-      quizAccuracy: Math.floor(Math.random() * 30) + 60, // 60-90%
+      quizAccuracy: Math.floor(Math.random() * 30) + 60,
       weakPoints: ['量子物理', '高阶函数', '现代艺术流派'].sort(() => 0.5 - Math.random()).slice(0, 2),
-      learningTrend: Array.from({length: 7}, () => Math.floor(Math.random() * 120)) // Random minutes for last 7 days
+      learningTrend: Array.from({length: 7}, () => Math.floor(Math.random() * 120))
     };
   }
 };
