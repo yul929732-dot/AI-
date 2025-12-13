@@ -1,155 +1,164 @@
 
-# HITEDU 智能教育平台 - 期末项目报告
+# 🎓 HITEDU 智能教育平台 - 期末项目报告
 
-## 1. 系统功能说明
+**项目名称**: HITEDU (Hybrid Intelligence Education Platform)  
+**开发团队**: HITEDU Dev Team  
+**报告日期**: 2025年
 
-### 1.1 项目概述
-HITEDU 是一个集成了生成式 AI 技术的现代化全栈教育平台。系统采用前后端分离架构，旨在通过 AI 赋能传统教学场景，提供个性化学习路径、智能辅助工具及数据驱动的教学反馈。平台支持**学生**和**教师**两种角色，具备差异化的功能权限。
+---
 
-### 1.2 技术栈详解 (Technology Stack)
+## 1. 系统功能说明 (System Overview)
 
-#### 前端 (Frontend)
-*   **核心框架**: React 18 (使用 Vite 构建工具)
-*   **开发语言**: TypeScript (强类型约束，提升代码健壮性)
-*   **UI 风格与样式**:
-    *   **Tailwind CSS**: 原子化 CSS 框架，用于快速布局。
-    *   **Liquid Glass UI**: 自定义 CSS 实现的“液态毛玻璃”视觉风格（见 `index.html` 及 `Layout.tsx` 中的动画与背景模糊效果）。
-    *   **Lucide React**: 现代化图标库。
-    *   **Three.js / React Three Fiber**: 用于实现 3D 视觉效果组件（如 `LiquidChrome.tsx`）。
-*   **状态管理**: React Hooks (`useState`, `useEffect`, `useRef`, `useContext`)。
+### 1.1 项目背景与概述
+HITEDU 是一个集成了 Google Gemini 生成式 AI 技术的现代化全栈教育平台。系统采用 **B/S (Browser/Server)** 架构，实现了前后端分离。项目旨在解决传统在线教育互动性差、反馈滞后的痛点，通过 AI 赋能，提供个性化学习路径、实时智能辅助、自动化出题与批改以及多维度的学情分析。
 
-#### 后端 (Backend)
-*   **运行环境**: Node.js
-*   **Web 框架**: Express.js (提供 RESTful API 服务)
-*   **中间件**:
-    *   `cors`: 处理跨域资源共享。
-    *   `body-parser`: 解析 JSON 请求体（配置了 50mb 限制以支持大文本/图片数据传输）。
-*   **数据库 (Database)**:
-    *   **JSON 文件存储**: 使用 `server/db.json` 作为轻量级持久化存储。
-    *   **实现逻辑**: 通过 Node.js 原生 `fs` 模块进行读写操作，模拟 NoSQL 数据库结构（包含 `users`, `videos`, `progress`, `mistakes`, `quizResults`, `reports` 等集合）。
+平台设计了**学生 (Student)** 和 **教师 (Teacher)** 双端角色：
+*   **学生端**: 专注沉浸式学习，包含智能视频播放器、语音笔记、AI 助教答疑及自适应测验。
+*   **教师端**: 专注教学管理，包含课程内容分发、可视化班级学情监控及教学资源管理。
 
-#### 人工智能 (AI Core)
-*   **SDK**: `@google/genai` (Google Gemini 官方 SDK)
-*   **模型应用**:
-    *   `gemini-2.5-flash`: 用于处理高并发、低延迟的文本生成任务（聊天、出题、报告分析、笔记整理）。
-    *   `gemini-2.5-flash-image`: 用于图像生成任务（如用户头像生成）。
-    *   `gemini-2.5-flash-preview-tts` (预留): 用于语音相关功能。
+---
 
-### 1.3 核心模块功能细节
+### 1.2 核心技术栈详解 (Detailed Technology Stack)
 
-#### A. 身份认证模块
-*   **功能**: 支持学生/教师注册与登录。
-*   **逻辑**: 前端通过 API 发送凭证 -> 后端验证 `db.json` 中的用户列表 -> 返回用户信息对象（不含 Token，采用会话存储模拟）。
-*   **特色**: 注册时自动根据用户名通过 UI Avatars 生成初始头像，或使用 AI 生成个性化头像。
+本项目采用现代化的 **MERN 变体架构** (React + Node.js + Express + Gemini AI)，各层级技术选型细节如下：
 
-#### B. 智能视频播放器 (Smart Video Player)
-*   **视频流**: 支持 MP4/WebM 格式播放。
-*   **章节导航**: 支持基于时间戳的章节跳转（`VideoChapter` 类型）。
-*   **随堂小测 (In-Video Quiz)**: 播放器自动监测时间轴，当到达特定时间点（`timestamp`）时自动暂停并弹出选择题，答对后方可继续。
-*   **智能笔记**: 集成 `VoiceNote` 组件，调用浏览器 `MediaRecorder` API 录音，并通过 Gemini 模型将语音转录为文本，支持 AI 一键整理笔记结构。
-*   **进度追踪**: 实时向后端同步观看进度（每 5 秒同步一次）。
+#### A. 前端架构 (Frontend Architecture)
 
-#### C. AI 辅助教学工具箱
-1.  **AI 智能出题 (AI Quiz)**:
-    *   用户输入主题或上传文档内容。
-    *   Gemini 生成符合 JSON Schema 的结构化试题（单选/简答）。
-    *   前端渲染答题界面，支持倒计时。
-    *   考试结束自动评分，并将错题和成绩同步至后端数据库。
-2.  **AI 助教 (Online Tutoring)**:
-    *   基于 RAG（检索增强生成）思路的简化版，维护多轮对话历史 (`history` 数组)。
-    *   提供 FAQ 检索和名师直播预约界面（模拟）。
-3.  **AI 作业报告 (AI Report)**:
-    *   读取上传的文本/Markdown 文件。
-    *   AI 从“相关性、逻辑、覆盖率、规范性”四个维度打分（0-100），并生成优化建议。
-    *   支持将分析报告保存至云端。
-4.  **教材制作工坊 (Courseware)**:
-    *   根据输入主题，AI 生成 PPT 大纲结构（页码、标题、内容点、配图提示词）。
-    *   模拟生成教学视频流程。
+*   **核心框架**: **React 18**
+    *   采用 **Functional Components** (函数式组件) + **Hooks** 编程范式，确保代码的简洁性与可复用性。
+    *   **DOM 渲染**: 使用 `react-dom/client` 的 `createRoot` API，启用 React 18 的并发渲染特性 (Concurrent Mode)。
+*   **构建工具**: **Vite**
+    *   利用 ES Modules 实现极速冷启动和 HMR (热模块替换)，显著提升开发体验。
+*   **开发语言**: **TypeScript (v5.x)**
+    *   全项目采用强类型约束，定义了详尽的接口 (`types.ts`) 如 `User`, `Video`, `QuizData`，有效规避了运行时类型错误，提升了代码的可维护性。
+*   **路由管理**: **Custom State-Based Routing**
+    *   未引入传统的 `react-router-dom`，而是通过 `App.tsx` 中的 `ViewState` 枚举与 React State (`useState`) 结合，实现了轻量级的单页应用 (SPA) 视图切换，减少了包体积。
 
-#### D. 个人中心与学情分析 (Student Profile)
-*   **AI 学习画像**: 基于用户的学习时长、错题记录和测验成绩，由 AI 实时生成一段个性化的学情评价。
-*   **头像生成**: 使用 `gemini-2.5-flash-image` 根据提示词生成个性化头像并更新至后端。
-*   **智能错题本**: 自动聚合所有错误的练习题，支持导出为 TXT 文件。
-*   **学习图表**: 可视化展示学习时长分布及薄弱知识点。
+#### B. UI/UX 与视觉渲染 (Visual Rendering)
 
-#### E. 教师工作台 (Teacher Dashboard)
-*   **课程发布**: 支持上传视频信息（标题、简介、分类），后端模拟存储视频元数据。
-*   **学情监控**: 查看班级活跃度趋势图表及 AI 生成的班级学情总结报告。
-*   **课程管理**: 对已发布的视频进行编辑或下架操作。
+*   **CSS 框架**: **Tailwind CSS**
+    *   采用 Utility-First (原子化) CSS 设计理念，实现快速响应式布局 (`flex`, `grid`, `md:`, `lg:` 断点控制)。
+*   **视觉风格**: **Liquid Glass UI (液态毛玻璃)**
+    *   **混合样式策略**: 结合 Tailwind 与原生 CSS (`index.html`)。
+    *   **核心技术**: 大量使用 `backdrop-filter: blur()`, `rgba` 透明度叠加, 以及 CSS3 Keyframe 动画 (`animate-gradient-xy`, `float`)，打造现代化、通透的界面质感。
+*   **3D 渲染引擎**: **React Three Fiber (R3F)**
+    *   **底层库**: `Three.js` + `@react-three/fiber` + `@react-three/drei`。
+    *   **实现**: 在 `components/LiquidChrome.tsx` 中通过 Shader Material (`MeshTransmissionMaterial`) 实现了高性能的 WebGL 液体金属背景效果，增强视觉沉浸感。
+*   **图标库**: **Lucide React**
+    *   使用轻量级、风格统一的 SVG 图标组件。
+
+#### C. 后端服务层 (Backend Service Layer)
+
+*   **运行环境**: **Node.js** (JavaScript Runtime)。
+*   **Web 框架**: **Express.js**
+    *   构建 RESTful API，处理前端 HTTP 请求 (GET, POST)。
+    *   **中间件配置**:
+        *   `cors`: 解决跨域资源共享问题，允许前端 `localhost:5173` 访问后端 API。
+        *   `body-parser`: 配置 `{ limit: '50mb' }`，支持 Base64 图片和大文本数据的传输（用于上传头像、作业文档）。
+*   **数据持久化 (Persistence Layer)**: **File-System Based JSON DB**
+    *   **实现原理**: 不依赖大型数据库软件 (MySQL/Mongo)，通过 Node.js 原生 `fs` (File System) 模块读写 `server/db.json` 文件。
+    *   **数据模型**: 模拟 NoSQL 文档结构，包含 `users`, `videos`, `progress`, `mistakes`, `quizResults` 等集合。
+    *   **优势**: 部署极简，零配置成本，适合课程项目演示；支持热更新与数据持久保存。
+
+#### D. 人工智能引擎 (Generative AI Engine)
+
+*   **SDK**: **Google GenAI SDK** (`@google/genai`)
+    *   直接在前端与 Google Gemini API 通信（部分场景）及后端集成。
+*   **核心模型应用**:
+    *   **Gemini 2.5 Flash**: 主力模型，用于处理高并发、低延迟的文本逻辑任务。
+        *   *Prompt Engineering*: 使用 **Few-Shot Prompting** 和 **Role Prompting** (如“你是一位严谨的学术顾问”) 优化输出。
+        *   *Structured Output*: 利用 `responseSchema` 和 `responseMimeType: "application/json"` 强制模型输出严格的 JSON 格式，确保前端能准确渲染 AI 生成的题目和报告。
+    *   **Gemini 2.5 Flash Image**: 多模态模型，用于根据文本提示词 (`prompt`) 生成用户个性化头像 (`StudentProfile.tsx`)。
+*   **RAG (检索增强生成) 模拟**:
+    *   在 `OnlineTutoring` 和 `AIReport` 模块中，将用户上传的本地文档内容作为 Context (上下文) 注入 Prompt，实现了基于特定知识库的问答与分析。
+
+#### E. 多媒体与浏览器原生 API (Web APIs)
+
+*   **Audio API**:
+    *   使用 `navigator.mediaDevices.getUserMedia` 获取麦克风权限。
+    *   使用 `MediaRecorder` 录制音频流并转换为 Blob 对象，配合 Gemini 多模态能力实现语音转文字 (`VoiceNote.tsx`)。
+*   **Video Playback**:
+    *   基于 HTML5 `<video>` 元素封装 `SmartVideoPlayer`。
+    *   通过监听 `timeupdate` 事件实现毫秒级的进度追踪、字幕同步渲染及随堂小测 (`quizzes` 触发器) 的自动弹出。
+
+---
+
+### 1.3 核心交互流程 (Core User Flows)
+
+#### 1. 智能视频学习流
+> 用户点击课程 -> 初始化播放器 -> 实时同步进度至后端 -> 触发时间轴事件 (Quiz/Subtitle) -> 用户语音录入笔记 -> AI 转录并整理 -> 笔记保存。
+
+#### 2. AI 自适应出题流
+> 用户输入主题/上传文档 -> 前端构建 Prompt (含 Schema 约束) -> 调用 Gemini API -> 获得 JSON 试题数据 -> 渲染交互式答题卡 -> 自动判分 -> 错题数据回传后端 -> 生成学情画像。
+
+#### 3. 数字化作业批改流
+> 学生上传作业 (TXT/MD) -> 读取文件内容 -> 组装分析 Prompt -> Gemini 多维度打分 (逻辑/覆盖率/规范性) -> 返回结构化报告 -> 可视化图表渲染 -> 报告云端存档。
 
 ---
 
 ## 2. 系统安装与操作说明
 
-### 2.1 环境配置要求
-*   **操作系统**: Windows, macOS, 或 Linux。
-*   **开发环境**: Node.js (v18.0.0+), npm (v9.0.0+)。
-*   **API Key**: 必须拥有 Google Gemini API Key (配置于 `.env` 文件)。
+### 2.1 环境配置要求 (Prerequisites)
+*   **Node.js**: v18.0.0 或更高版本 (必需，用于运行 JS 运行时)。
+*   **npm**: v9.0.0+ (包管理器)。
+*   **浏览器**: Chrome/Edge (建议最新版，以支持 WebGL 和 ES6 特性)。
+*   **API Key**: Google Gemini API Key (需在 `.env` 文件中配置)。
 
-### 2.2 部署步骤
+### 2.2 部署步骤 (Deployment Guide)
 
-本系统包含两个独立运行的服务：后端服务器（Port 3001）和前端应用（Port 5173）。
+本项目分为 **Server (后端)** 和 **Client (前端)** 两个独立工程，需分别启动。
 
-#### 第一步：后端部署
-1.  打开终端，进入 server 目录：
+#### 步骤一：启动后端数据服务
+1.  打开终端 (Terminal)，进入后端目录：
     ```bash
     cd server
     ```
-2.  安装依赖：
+2.  安装后端依赖库 (Express, Cors, Multer 等)：
     ```bash
     npm install
     ```
-3.  启动后端服务：
+3.  启动 Express 服务器：
     ```bash
     npm start
     ```
-    *成功提示*: 控制台输出 `Server running on http://localhost:3001`，并自动生成 `db.json` 数据库文件。
+    *   **成功验证**: 终端显示 `Server running on http://localhost:3001`。
+    *   *注*: 系统会自动在 `server/` 目录下创建 `db.json` 初始化数据库。
 
-#### 第二步：前端部署
-1.  打开一个新的终端窗口，进入项目根目录：
+#### 步骤二：启动前端应用
+1.  打开新的终端窗口，进入项目根目录：
     ```bash
-    cd ..  # 如果当前在 server 目录
+    cd ..  # 如果当前在 server 目录，需返回上一级
     ```
-2.  安装前端依赖：
+2.  安装前端依赖库 (React, Typescript, Vite, Three.js, Lucide 等)：
     ```bash
     npm install
     ```
-3.  配置环境变量：
-    在根目录创建 `.env` 文件，并写入：
-    ```env
-    VITE_API_KEY=你的_Gemini_API_Key
-    ```
-4.  启动前端应用：
+3.  **关键配置**: 配置环境变量
+    *   在根目录新建文件 `.env`。
+    *   写入 API Key (注意不要带引号):
+        ```env
+        VITE_API_KEY=AIzaSyDxxxxxxxxxxxxxxxxxxxxxxxx
+        ```
+4.  启动开发服务器：
     ```bash
     npm run dev
     ```
-    *成功提示*: 控制台输出 `Local: http://localhost:5173/`。
+    *   **成功验证**: 终端显示 `Local: http://localhost:5173/`。
 
-### 2.3 用户操作教程
+### 2.3 用户操作手册 (User Manual)
 
-#### 1. 注册与登录
-*   访问 `http://localhost:5173`。
-*   点击“免费注册”，选择角色（学生/教师），输入用户名密码。
-*   登录后将进入对应的仪表盘。
-
-#### 2. 体验 AI 出题 (学生端)
-*   在仪表盘点击“AI 智能出题”。
-*   输入主题（如“计算机网络”）或上传本地 TXT 笔记。
-*   配置题目数量和时间，点击“立即生成”。
-*   完成作答后，系统自动判分并保存结果。
-
-#### 3. 观看视频与笔记 (学生端)
-*   在首页点击任意推荐课程进入播放页。
-*   视频播放过程中，右侧侧边栏点击“录音”按钮。
-*   说话后停止，系统自动将语音转为文字笔记。
-*   点击“AI 整理”，Gemini 将自动美化笔记格式。
-
-#### 4. 发布课程 (教师端)
-*   以教师账号登录。
-*   在工作台切换至“发布课程”标签页。
-*   填写课程信息，点击发布。
-*   发布成功后，视频将即时出现在学生端的推荐列表中。
+1.  **访问平台**: 浏览器打开 `http://localhost:5173`。
+2.  **身份认证**:
+    *   推荐点击“免费注册”，分别注册一个“学生账号”和一个“教师账号”以体验不同视角。
+    *   登录后，Token (模拟) 将存储于 LocalStorage。
+3.  **学生端体验**:
+    *   **AI 出题**: 进入“AI 智能出题”，上传本地 TXT 笔记，选择“5题+单选”，体验 AI 基于文档内容的精准出题。
+    *   **视频交互**: 观看《计算机科学导论》，在第 10 秒会自动暂停弹出测试题；点击右侧话筒录制语音笔记。
+    *   **学情画像**: 进入“个人中心”，查看 AI 基于您的做题记录生成的个性化评语和雷达图。
+4.  **教师端体验**:
+    *   登录教师账号，进入“教师工作台”。
+    *   在“发布课程”页签，填写元数据并发布新视频（模拟上传）。
+    *   在“班级学情”页签，查看全班的学习活跃度热力图。
 
 ---
-**报告生成时间**: 2025年
-**开发团队**: HITEDU Dev Team
+**Designed by HITEDU Team** | Powering Education with Intelligence.
