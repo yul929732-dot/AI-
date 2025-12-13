@@ -3,7 +3,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { Video, VideoQuiz } from '../types';
 import { Button } from './Button';
 import { VoiceNote } from './VoiceNote';
-import { mockBackend } from '../services/mockBackend';
+import { api } from '../services/api';
 import { geminiService } from '../services/geminiService';
 import { 
   Play, Pause, Volume2, VolumeX, Maximize, RotateCcw, 
@@ -72,7 +72,7 @@ export const SmartVideoPlayer: React.FC<SmartVideoPlayerProps> = ({ video, userI
   // Load progress
   useEffect(() => {
       const loadProgress = async () => {
-          const time = await mockBackend.getVideoProgress(userId, video.id);
+          const time = await api.getVideoProgress(userId, video.id);
           if (videoRef.current) {
               videoRef.current.currentTime = time;
               setCurrentTime(time);
@@ -100,7 +100,7 @@ export const SmartVideoPlayer: React.FC<SmartVideoPlayerProps> = ({ video, userI
     
     // Save Progress Throttled
     if (Math.floor(time) % 5 === 0) {
-        mockBackend.saveVideoProgress(userId, video.id, time);
+        api.saveVideoProgress(userId, video.id, time);
     }
 
     // Update Subtitles

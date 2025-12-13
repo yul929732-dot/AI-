@@ -2,8 +2,26 @@
 import { GoogleGenAI, Type } from "@google/genai";
 import { QuizData, QuizConfig, ReportAnalysis, Slide } from "../types";
 
-const apiKey = process.env.API_KEY || ''; 
+// 增强的 API Key 获取逻辑，适配不同的本地开发环境 (Vite, CRA, Node)
+const getApiKey = () => {
+  // 1. 尝试从 process.env 获取 (Studio 环境或 Webpack)
+  if (typeof process !== 'undefined' && process.env && process.env.API_KEY) {
+    return process.env.API_KEY;
+  }
+  // 2. 尝试从 Vite 环境变量获取 (常见的 React 本地开发栈)
+  // @ts-ignore
+  if (typeof import.meta !== 'undefined' && import.meta.env && import.meta.env.VITE_API_KEY) {
+    // @ts-ignore
+    return import.meta.env.VITE_API_KEY;
+  }
+  // 3. 尝试从 React App 环境变量获取 (CRA)
+  if (typeof process !== 'undefined' && process.env && process.env.REACT_APP_API_KEY) {
+    return process.env.REACT_APP_API_KEY;
+  }
+  return '';
+};
 
+const apiKey = getApiKey();
 const ai = new GoogleGenAI({ apiKey });
 
 export const geminiService = {
@@ -11,7 +29,7 @@ export const geminiService = {
    * Transcribes audio using Gemini 2.5 Flash.
    */
   async transcribeAudio(audioBlob: Blob): Promise<string> {
-    if (!apiKey) return "错误：缺少 API Key。";
+    if (!apiKey) return "配置错误：未找到 API Key。请检查本地 .env 文件配置。";
 
     try {
       const base64Audio = await blobToBase64(audioBlob);
@@ -27,12 +45,12 @@ export const geminiService = {
       return response.text || "无法获取转录内容。";
     } catch (error) {
       console.error("Gemini Transcription Error:", error);
-      return "转录失败，请重试。";
+      return "转录失败，请检查网络或 API Key 配额。";
     }
   },
 
   async chat(history: {role: 'user' | 'model', text: string}[], newMessage: string): Promise<string> {
-    if (!apiKey) return "配置错误：缺少 API Key。";
+    if (!apiKey) return "配置错误：未找到 API Key。请检查本地 .env 文件配置。";
 
     try {
       const prompt = `你是一个专业的AI助教。请简洁、准确地回答学生的问题。

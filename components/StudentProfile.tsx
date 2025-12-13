@@ -1,7 +1,7 @@
 
 import React, { useEffect, useState, useRef } from 'react';
 import { User, MistakeRecord, LearningStats } from '../types';
-import { mockBackend } from '../services/mockBackend';
+import { api } from '../services/api';
 import { geminiService } from '../services/geminiService';
 import { Schedule } from './Schedule';
 import { BarChart3, AlertCircle, Clock, BookOpen, BrainCircuit, XCircle, Sparkles, Camera, Loader2, Upload, Download } from 'lucide-react';
@@ -24,9 +24,9 @@ export const StudentProfile: React.FC<StudentProfileProps> = ({ user }) => {
 
   useEffect(() => {
     const loadData = async () => {
-      const m = await mockBackend.getMistakes(user.id);
+      const m = await api.getMistakes(user.id);
       setMistakes(m);
-      const s = await mockBackend.getUserStats(user.id);
+      const s = await api.getUserStats(user.id);
       setStats(s);
       generateAIAnalysis(s, m);
     };
@@ -78,7 +78,7 @@ export const StudentProfile: React.FC<StudentProfileProps> = ({ user }) => {
 
   const updateAvatar = async (newUrl: string) => {
     try {
-      const updatedUser = await mockBackend.updateUserAvatar(user.id, newUrl);
+      const updatedUser = await api.updateUserAvatar(user.id, newUrl);
       setCurrentUser(updatedUser);
       setIsEditingAvatar(false);
     } catch (e) {

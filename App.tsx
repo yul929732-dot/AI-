@@ -12,7 +12,7 @@ import { StudentProfile } from './components/StudentProfile';
 import { TeacherDashboard } from './components/TeacherDashboard'; 
 import { AIReport } from './components/AIReport'; 
 import { AICourseware } from './components/AICourseware'; 
-import { mockBackend } from './services/mockBackend';
+import { api } from './services/api';
 import { User, Video, ViewState, Role, QuizQuestion } from './types';
 import { COZE_URLS } from './constants';
 import { 
@@ -56,19 +56,27 @@ function App() {
   // Initialize
   useEffect(() => {
     const init = async () => {
-      const session = await mockBackend.getSession();
-      if (session) {
-        setUser(session);
-        setView(session.role === 'teacher' ? ViewState.TEACHER_DASHBOARD : ViewState.DASHBOARD);
-        fetchVideos();
+      try {
+        const session = await api.getSession();
+        if (session) {
+          setUser(session);
+          setView(session.role === 'teacher' ? ViewState.TEACHER_DASHBOARD : ViewState.DASHBOARD);
+          fetchVideos();
+        }
+      } catch (e) {
+        console.error("Failed to connect to backend", e);
       }
     };
     init();
   }, []);
 
   const fetchVideos = async () => {
-    const data = await mockBackend.getVideos();
-    setVideos(data);
+    try {
+      const data = await api.getVideos();
+      setVideos(data);
+    } catch (e) {
+      console.error("Fetch videos failed", e);
+    }
   };
 
   // Handlers
@@ -77,7 +85,7 @@ function App() {
     setAuthError('');
     setIsLoading(true);
     try {
-      const loggedInUser = await mockBackend.login(username, password, role);
+      const loggedInUser = await api.login(username, password, role);
       setUser(loggedInUser);
       setView(loggedInUser.role === 'teacher' ? ViewState.TEACHER_DASHBOARD : ViewState.DASHBOARD);
       fetchVideos();
@@ -99,7 +107,7 @@ function App() {
 
     setIsLoading(true);
     try {
-      const newUser = await mockBackend.register(username, password, email, role);
+      const newUser = await api.register(username, password, email, role);
       setUser(newUser);
       setView(newUser.role === 'teacher' ? ViewState.TEACHER_DASHBOARD : ViewState.DASHBOARD);
       fetchVideos();
@@ -111,7 +119,7 @@ function App() {
   };
 
   const handleLogout = async () => {
-    await mockBackend.logout();
+    await api.logout();
     setUser(null);
     setCurrentVideo(null);
     setView(ViewState.LOGIN);
@@ -155,7 +163,7 @@ function App() {
 
   const handleMistake = async (question: QuizQuestion, wrongAnswer: string | number, topic: string) => {
      if (user) {
-        await mockBackend.saveMistake(user.id, {
+        await api.saveMistake(user.id, {
            question,
            wrongAnswer,
            topic

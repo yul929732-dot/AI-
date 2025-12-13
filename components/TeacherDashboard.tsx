@@ -1,8 +1,9 @@
+
 import React, { useState, useEffect } from 'react';
 import { User, Video } from '../types';
 import { Button } from './Button';
 import { Input } from './Input';
-import { mockBackend } from '../services/mockBackend';
+import { api } from '../services/api';
 import { Schedule } from './Schedule';
 import { UploadCloud, Video as VideoIcon, Users, BarChart, Home, PlusCircle, BookOpen, Sparkles, AlertTriangle, PenTool } from 'lucide-react';
 
@@ -26,7 +27,7 @@ export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({ user, onVide
   }, [user]);
 
   const loadMyVideos = async () => {
-    const all = await mockBackend.getVideos();
+    const all = await api.getVideos();
     setMyVideos(all.filter(v => v.uploaderId === user.id || v.uploaderId === 'teacher_mock'));
   };
 
@@ -34,7 +35,7 @@ export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({ user, onVide
     e.preventDefault();
     setIsUploading(true);
     try {
-      await mockBackend.addVideo({
+      await api.addVideo({
         title,
         description: desc,
         category: category || 'General',

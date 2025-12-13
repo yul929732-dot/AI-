@@ -4,7 +4,7 @@ import { Plus, Trash2, Save, Calendar, Upload } from 'lucide-react';
 import { Button } from './Button';
 import { Input } from './Input';
 import { ScheduleItem } from '../types';
-import { mockBackend } from '../services/mockBackend';
+import { api } from '../services/api';
 
 interface ScheduleProps {
   userId: string;
@@ -30,7 +30,7 @@ export const Schedule: React.FC<ScheduleProps> = ({ userId, isEditable }) => {
 
   const loadSchedule = async () => {
     setLoading(true);
-    const data = await mockBackend.getSchedule(userId);
+    const data = await api.getSchedule(userId);
     setSchedule(data);
     setLoading(false);
   };
@@ -53,7 +53,7 @@ export const Schedule: React.FC<ScheduleProps> = ({ userId, isEditable }) => {
     const newSchedule = [...filtered, newItem];
     
     setSchedule(newSchedule);
-    await mockBackend.saveSchedule(userId, newSchedule);
+    await api.saveSchedule(userId, newSchedule);
     setEditingSlot(null);
     setNewItemText('');
   };
@@ -61,7 +61,7 @@ export const Schedule: React.FC<ScheduleProps> = ({ userId, isEditable }) => {
   const handleDeleteItem = async (day: string, time: string) => {
     const newSchedule = schedule.filter(s => !(s.day === day && s.timeSlot === time));
     setSchedule(newSchedule);
-    await mockBackend.saveSchedule(userId, newSchedule);
+    await api.saveSchedule(userId, newSchedule);
   };
 
   // Mock parsing of Excel
@@ -87,7 +87,7 @@ export const Schedule: React.FC<ScheduleProps> = ({ userId, isEditable }) => {
                      });
                  });
                  setSchedule(mockSchedule);
-                 mockBackend.saveSchedule(userId, mockSchedule);
+                 api.saveSchedule(userId, mockSchedule);
                  setLoading(false);
                  alert("导入成功！");
              }, 1000);
