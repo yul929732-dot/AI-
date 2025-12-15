@@ -6,12 +6,22 @@ const fs = require('fs');
 const path = require('path');
 
 const app = express();
-const PORT = 3001;
+// Cloud providers (Render/Heroku/Railway) assign a port via process.env.PORT
+// We must use that if available, otherwise fallback to 3001 for local dev.
+const PORT = process.env.PORT || 3001;
 const DB_FILE = path.join(__dirname, 'db.json');
 
+// Allow all origins for simplicity in this demo project.
+// In a strict production environment, you would restrict this to your frontend domain.
 app.use(cors());
+
 // Increased limit for large payloads like images or report text
 app.use(bodyParser.json({ limit: '50mb' }));
+
+// Health Check Route (Crucial for cloud deployments to know the app is running)
+app.get('/', (req, res) => {
+  res.send('HITEDU Backend is running!');
+});
 
 // 默认的初始数据库结构
 const defaultDb = {
@@ -353,6 +363,6 @@ app.post('/api/users/:id/schedule', (req, res) => {
 });
 
 
-app.listen(PORT, () => {
-  console.log(`Server running on http://localhost:${PORT}`);
+app.listen(PORT, '0.0.0.0', () => {
+  console.log(`Server running on port ${PORT}`);
 });

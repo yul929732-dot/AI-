@@ -8,15 +8,15 @@ import { QuizData, QuizConfig, ReportAnalysis, Slide, LearningStats, MistakeReco
 const EMBEDDED_API_KEY = ""; // 🟢 在这里填入你的 Gemini API Key，例如: "AIzaSy..."
 
 const getApiKey = () => {
-  // 1. 尝试从 process.env 获取
-  if (typeof process !== 'undefined' && process.env && process.env.API_KEY) {
-    return process.env.API_KEY;
-  }
-  // 2. 尝试从 Vite 环境变量获取
+  // 1. 尝试从 Vite 环境变量获取 (生产环境最推荐)
   // @ts-ignore
   if (typeof import.meta !== 'undefined' && import.meta.env && import.meta.env.VITE_API_KEY) {
     // @ts-ignore
     return import.meta.env.VITE_API_KEY;
+  }
+  // 2. 尝试从 process.env 获取 (部分 Node 环境)
+  if (typeof process !== 'undefined' && process.env && process.env.API_KEY) {
+    return process.env.API_KEY;
   }
   // 3. 尝试使用内嵌 Key
   if (EMBEDDED_API_KEY) {

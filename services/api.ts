@@ -2,7 +2,20 @@
 import { User, Video, Role, ScheduleItem, MistakeRecord, LearningStats, QuizResult, SavedReport } from '../types';
 import { mockBackend } from './mockBackend';
 
-const API_BASE = 'http://localhost:3001/api';
+// 动态判断 API 地址：
+// 1. 如果设置了 VITE_API_BASE_URL 环境变量（生产部署），使用该变量。
+// 2. 否则默认回退到 http://localhost:3001/api（本地开发）。
+// 注意：在 Vercel/Netlify 等平台部署前端时，请务必设置 VITE_API_BASE_URL 环境变量指向你的后端 URL。
+const getApiBase = () => {
+  // @ts-ignore
+  if (typeof import.meta !== 'undefined' && import.meta.env && import.meta.env.VITE_API_BASE_URL) {
+    // @ts-ignore
+    return import.meta.env.VITE_API_BASE_URL;
+  }
+  return 'http://localhost:3001/api';
+};
+
+const API_BASE = getApiBase();
 
 const handleResponse = async (res: Response) => {
   if (!res.ok) {
@@ -27,7 +40,7 @@ async function withFallback<T>(
     // Check for network errors (TypeError in fetch, or specific flags)
     // If the error message indicates a connection failure, use mock.
     if (e.name === 'TypeError' || e.message === 'Failed to fetch' || e.message.includes('NetworkError')) {
-      console.warn("⚠️ Backend connection failed. Falling back to Mock Backend.");
+      console.warn(`⚠️ Backend connection failed (${API_BASE}). Falling back to Mock Backend.`);
       return mockCall();
     }
     // If it's a business logic error (e.g. 'User already exists' from handleResponse), rethrow it.

@@ -16,8 +16,9 @@
     *   [第二步：配置前端环境](#第二步配置前端环境-frontend)
     *   [第三步：启动前端应用](#第三步启动前端应用)
 4. [🔑 API Key 配置详解](#4-🔑-api-key-配置详解)
-5. [💾 数据库与数据持久化](#5-💾-数据库与数据持久化)
-6. [🛠️ 常见问题排查 (Troubleshooting)](#6-🛠️-常见问题排查-troubleshooting)
+5. [☁️ 公网部署指南 (Deployment)](#5-☁️-公网部署指南-deployment)
+6. [💾 数据库与数据持久化](#6-💾-数据库与数据持久化)
+7. [🛠️ 常见问题排查 (Troubleshooting)](#7-🛠️-常见问题排查-troubleshooting)
 
 ---
 
@@ -76,7 +77,7 @@ HITEDU-ROOT/
     ```
 
 ✅ **成功标志**：
-终端输出：`Server running on http://localhost:3001`
+终端输出：`Server running on port 3001`
 此时，`server` 目录下会自动生成一个 `db.json` 文件。
 
 > **注意**：请不要关闭这个终端窗口，保持它一直运行。
@@ -140,7 +141,24 @@ HITEDU-ROOT/
 
 ---
 
-## 5. 💾 数据库与数据持久化
+## 5. ☁️ 公网部署指南 (Deployment)
+
+如果要将项目部署到公网 (如 Vercel, Netlify, Render, Railway)，需要注意以下几点：
+
+### 后端部署 (例如 Render, Railway)
+1.  确保 `server/package.json` 中的 `scripts` 有 `"start": "node index.js"`。
+2.  云平台通常会提供一个动态端口，代码中的 `PORT = process.env.PORT || 3001` 已经适配了这一点。
+3.  **注意**: `db.json` 文件存储在部分无服务器平台（如 Vercel Functions）是无法持久化的（重启会丢失数据）。推荐使用支持磁盘持久化的服务（如 Render Disk, Railway Volume）或仅作为演示用途。
+
+### 前端部署 (例如 Vercel, Netlify)
+1.  部署时，需要在平台的 **Environment Variables** (环境变量) 设置中添加：
+    *   `VITE_API_KEY`: 您的 Gemini API Key。
+    *   `VITE_API_BASE_URL`: **这是最关键的一步！** 填入您部署好的后端 URL (例如 `https://my-hitedu-backend.onrender.com/api`)。
+2.  如果不设置 `VITE_API_BASE_URL`，前端会默认尝试连接 `http://localhost:3001`，导致在公网访问时报错 "Network Error"。
+
+---
+
+## 6. 💾 数据库与数据持久化
 
 本项目使用文件系统作为轻量级数据库，无需安装 MySQL 或 MongoDB。
 
@@ -154,18 +172,13 @@ HITEDU-ROOT/
     *   AI 批改报告 (Reports)
     *   课程表 (Schedules)
 
-**验证方法**：
-注册一个新账号，然后用文本编辑器打开 `server/db.json`，您应该能立即看到新注册的用户数据出现在文件中。
-
 ---
 
-## 6. 🛠️ 常见问题排查 (Troubleshooting)
+## 7. 🛠️ 常见问题排查 (Troubleshooting)
 
 ### Q1: 点击注册或登录显示 "Network Error" 或没反应？
-*   **原因**: 后端服务器没启动，或者前端连接不上后端。
-*   **解决**:
-    1.  检查**第一个终端**是否正在运行 `npm start` (port 3001)。
-    2.  如果后端未启动，前端会回退到 "Mock 模式"（模拟模式），数据保存在浏览器缓存中，刷新页面会丢失。请务必启动后端以获得完整体验。
+*   **本地开发**: 检查后端终端是否运行 `npm start`，且端口为 3001。
+*   **公网部署**: 检查浏览器的 Console 面板。如果报错 `http://localhost:3001/api/... net::ERR_CONNECTION_REFUSED`，说明你没有配置 `VITE_API_BASE_URL` 环境变量指向真实的后端地址。
 
 ### Q2: AI 功能提示 "配置错误：未找到 API Key"？
 *   **原因**: `.env` 文件缺失或配置错误。
