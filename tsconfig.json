@@ -16,9 +16,14 @@
     "noUnusedParameters": true,
     "noFallthroughCasesInSwitch": true
   },
+  
+  // ✅ 最终修正：同时包含 'src' 文件夹和根目录下所有 TypeScript 文件
   "include": [
-    "src/**/*"
+    "src/**/*", 
+    "*.ts", 
+    "*.tsx"
   ],
+  
   "exclude": [
     "node_modules",
     "dist",
