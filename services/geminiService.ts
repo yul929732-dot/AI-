@@ -1,35 +1,41 @@
 
 import { GoogleGenAI, Type } from "@google/genai";
-import { QuizData, QuizConfig, ReportAnalysis, Slide } from "../types";
+import { QuizData, QuizConfig, ReportAnalysis, Slide, LearningStats, MistakeRecord } from "../types";
 
-// 增强的 API Key 获取逻辑，适配不同的本地开发环境 (Vite, CRA, Node)
+// --- 安全提示 ---
+// 为了方便演示，这里支持内嵌 Key。
+// 请将你的 API Key 填入下方引号中 (直接明文即可，或者 Base64 编码后填入 EMBEDDED_KEY_BASE64)
+const EMBEDDED_API_KEY = ""; // 🟢 在这里填入你的 Gemini API Key，例如: "AIzaSy..."
+
 const getApiKey = () => {
-  // 1. 尝试从 process.env 获取 (Studio 环境或 Webpack)
+  // 1. 尝试从 process.env 获取
   if (typeof process !== 'undefined' && process.env && process.env.API_KEY) {
     return process.env.API_KEY;
   }
-  // 2. 尝试从 Vite 环境变量获取 (常见的 React 本地开发栈)
+  // 2. 尝试从 Vite 环境变量获取
   // @ts-ignore
   if (typeof import.meta !== 'undefined' && import.meta.env && import.meta.env.VITE_API_KEY) {
     // @ts-ignore
     return import.meta.env.VITE_API_KEY;
   }
-  // 3. 尝试从 React App 环境变量获取 (CRA)
-  if (typeof process !== 'undefined' && process.env && process.env.REACT_APP_API_KEY) {
-    return process.env.REACT_APP_API_KEY;
+  // 3. 尝试使用内嵌 Key
+  if (EMBEDDED_API_KEY) {
+      return EMBEDDED_API_KEY;
   }
+  
   return '';
 };
 
 const apiKey = getApiKey();
-const ai = new GoogleGenAI({ apiKey });
+// 注意：如果 Key 为空，这里初始化可能会报错，但在调用时我们会检查
+const ai = apiKey ? new GoogleGenAI({ apiKey }) : null;
 
 export const geminiService = {
   /**
    * Transcribes audio using Gemini 2.5 Flash.
    */
   async transcribeAudio(audioBlob: Blob): Promise<string> {
-    if (!apiKey) return "配置错误：未找到 API Key。请检查本地 .env 文件配置。";
+    if (!ai) return "配置错误：未配置 API Key。请在 .env 文件中设置 VITE_API_KEY 或在 geminiService.ts 中填入内嵌 Key。";
 
     try {
       const base64Audio = await blobToBase64(audioBlob);
@@ -50,7 +56,7 @@ export const geminiService = {
   },
 
   async chat(history: {role: 'user' | 'model', text: string}[], newMessage: string): Promise<string> {
-    if (!apiKey) return "配置错误：未找到 API Key。请检查本地 .env 文件配置。";
+    if (!ai) return "配置错误：未配置 API Key。";
 
     try {
       const prompt = `你是一个专业的AI助教。请简洁、准确地回答学生的问题。
@@ -77,7 +83,7 @@ export const geminiService = {
    * Automatically organize unstructured notes into a structured summary.
    */
   async organizeNotes(rawNotes: string): Promise<string> {
-    if (!apiKey) return rawNotes + "\n(AI 整理失败：缺少 Key)";
+    if (!ai) return rawNotes + "\n(AI 整理失败：缺少 Key)";
 
     const prompt = `请将以下杂乱的学习笔记整理成结构清晰、要点明确的格式（使用 Markdown）。
     如果笔记内容较少，请尝试补充相关的背景知识点。
@@ -101,7 +107,7 @@ export const geminiService = {
    * Generates a structured Quiz based on config (Topic OR File Content).
    */
   async generateQuiz(config: QuizConfig): Promise<QuizData> {
-    if (!apiKey) throw new Error("缺少 API Key");
+    if (!ai) throw new Error("缺少 API Key");
 
     const sourceMaterial = config.fileContent 
       ? `基于以下上传的文件内容：\n${config.fileContent.substring(0, 5000)}...` // Truncate if too long
@@ -171,7 +177,7 @@ export const geminiService = {
    * AI Report Analysis
    */
   async analyzeReport(fileContent: string): Promise<ReportAnalysis> {
-    if (!apiKey) throw new Error("缺少 API Key");
+    if (!ai) throw new Error("缺少 API Key");
 
     const prompt = `你是一位严谨的学术顾问。请评估以下学生报告的内容：
     
@@ -218,7 +224,7 @@ export const geminiService = {
    * Generate PPT Structure (Courseware)
    */
   async generateCoursewareSlides(topicOrContent: string): Promise<Slide[]> {
-      if (!apiKey) throw new Error("缺少 API Key");
+      if (!ai) throw new Error("缺少 API Key");
       
       const prompt = `请根据以下内容生成一份教学 PPT 的大纲结构。
       内容/主题：${topicOrContent.substring(0, 5000)}
@@ -254,7 +260,7 @@ export const geminiService = {
   },
 
   async generateAvatar(prompt: string): Promise<string> {
-    if (!apiKey) throw new Error("缺少 API Key");
+    if (!ai) throw new Error("缺少 API Key");
     
     try {
       const response = await ai.models.generateContent({
@@ -273,6 +279,38 @@ export const geminiService = {
       console.error("Avatar Generation Error:", error);
       throw error;
     }
+  },
+
+  /**
+   * New: Generate Student Learning Profile
+   */
+  async generateLearningProfile(stats: LearningStats, mistakes: MistakeRecord[]): Promise<string> {
+      if (!ai) return "请配置 API Key 以获取 AI 分析报告。";
+
+      const mistakesSummary = mistakes.slice(0, 3).map(m => `题目: ${m.question.question} (主题: ${m.topic})`).join('\n');
+      
+      const prompt = `请根据以下学生的学习数据，生成一段 100 字左右的个性化学习画像和建议。
+      
+      数据：
+      - 学习时长: ${stats.totalStudyHours}小时
+      - 完课数量: ${stats.completedCourses}门
+      - 平均正确率: ${stats.quizAccuracy}%
+      - 薄弱知识点: ${stats.weakPoints.join(', ')}
+      - 最近错题示例: 
+      ${mistakesSummary}
+      
+      请用鼓励性的语气，指出优点，并针对薄弱环节给出具体建议。`;
+
+      try {
+          const response = await ai.models.generateContent({
+              model: 'gemini-2.5-flash',
+              contents: prompt
+          });
+          return response.text || "无法生成分析。";
+      } catch (error) {
+          console.error("Profile Gen Error", error);
+          return "生成画像时出错。";
+      }
   }
 };
 

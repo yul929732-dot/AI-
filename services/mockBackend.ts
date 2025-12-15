@@ -171,6 +171,27 @@ export const mockBackend = {
     return newVideo;
   },
 
+  // [新增] 模拟删除视频
+  async deleteVideo(id: string): Promise<void> {
+      await delay(500);
+      let videos = await mockBackend.getVideos();
+      videos = videos.filter(v => v.id !== id);
+      localStorage.setItem(VIDEOS_KEY, JSON.stringify(videos));
+  },
+
+  // [新增] 模拟更新视频
+  async updateVideo(id: string, updates: Partial<Video>): Promise<Video> {
+      await delay(500);
+      const videos = await mockBackend.getVideos();
+      const index = videos.findIndex(v => v.id === id);
+      if (index === -1) throw new Error("Video not found");
+      
+      const updated = { ...videos[index], ...updates };
+      videos[index] = updated;
+      localStorage.setItem(VIDEOS_KEY, JSON.stringify(videos));
+      return updated;
+  },
+
   async saveVideoProgress(userId: string, videoId: string, timestamp: number): Promise<void> {
     const raw = localStorage.getItem(PROGRESS_KEY);
     const allProgress: Record<string, VideoProgress> = raw ? JSON.parse(raw) : {};

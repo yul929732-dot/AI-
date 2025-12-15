@@ -3,33 +3,6 @@ import { Canvas, useFrame } from '@react-three/fiber';
 import { MeshTransmissionMaterial, Environment, Float } from '@react-three/drei';
 import * as THREE from 'three';
 
-// Add type declarations for React Three Fiber intrinsic elements to fix TS errors.
-// We augment both the global JSX namespace and the React module's JSX namespace
-// to ensure compatibility across different TypeScript and React versions.
-declare global {
-  namespace JSX {
-    interface IntrinsicElements {
-      mesh: any;
-      group: any;
-      planeGeometry: any;
-      meshBasicMaterial: any;
-      torusGeometry: any;
-    }
-  }
-}
-
-declare module 'react' {
-  namespace JSX {
-    interface IntrinsicElements {
-      mesh: any;
-      group: any;
-      planeGeometry: any;
-      meshBasicMaterial: any;
-      torusGeometry: any;
-    }
-  }
-}
-
 interface LiquidChromeProps {
   isActive: boolean;
 }

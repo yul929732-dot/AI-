@@ -110,6 +110,28 @@ export const api = {
     );
   },
 
+  // [新增] 删除视频
+  async deleteVideo(id: string): Promise<void> {
+    return withFallback(
+      () => fetch(`${API_BASE}/videos/${id}`, {
+        method: 'DELETE'
+      }),
+      () => mockBackend.deleteVideo(id)
+    );
+  },
+
+  // [新增] 更新视频
+  async updateVideo(id: string, updates: Partial<Video>): Promise<Video> {
+    return withFallback(
+      () => fetch(`${API_BASE}/videos/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(updates)
+      }),
+      () => mockBackend.updateVideo(id, updates)
+    );
+  },
+
   // --- PROGRESS ---
   async saveVideoProgress(userId: string, videoId: string, timestamp: number): Promise<void> {
     return withFallback(

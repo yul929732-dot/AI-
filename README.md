@@ -98,12 +98,13 @@ HITEDU-ROOT/
     npm install
     ```
 4.  **配置环境变量 (关键)**：
-    *   在根目录下创建一个新文件，命名为 `.env`。
-    *   打开该文件，粘贴以下内容（将 `你的Key` 替换为真实的 Gemini API Key）：
+    *   **推荐方式**: 在根目录下创建一个新文件，命名为 `.env`，粘贴以下内容（将 `你的Key` 替换为真实的 Gemini API Key）：
 
     ```env
     VITE_API_KEY=AIzaSyxxxxxxxxxxxxxxxxxxxxxxxxxxxx
     ```
+    
+    *   **备用方式 (内嵌 Key)**: 如果您无法创建 `.env` 文件或在公网/本地环境下遇到读取问题，可以直接修改 `src/services/geminiService.ts` 文件，将 Key 填入 `EMBEDDED_API_KEY` 常量中。
 
 ---
 
@@ -131,11 +132,11 @@ HITEDU-ROOT/
 
 ## 4. 🔑 API Key 配置详解
 
-为了让 AI 功能（如自动出题、AI 助教、语音转录）正常工作，必须正确配置 `.env` 文件。
+为了让 AI 功能（如自动出题、AI 助教、语音转录）正常工作，必须正确配置 Key。
 
 *   **文件名**: 必须严格命名为 `.env`，不要叫 `.env.local` 或 `config.js`。
 *   **变量名**: 必须使用 `VITE_API_KEY`。前端代码 (`services/geminiService.ts`) 已配置为自动读取此变量。
-*   **安全提示**: 不要将包含真实 Key 的 `.env` 文件上传到 GitHub 公共仓库。
+*   **内嵌 Key**: 在 `services/geminiService.ts` 中找到 `EMBEDDED_API_KEY`，可直接填入字符串。这对于快速演示非常方便。
 
 ---
 
@@ -172,14 +173,11 @@ HITEDU-ROOT/
     1.  确保根目录下有 `.env` 文件。
     2.  确保文件内容是 `VITE_API_KEY=AIza...`。
     3.  **修改 .env 后，必须重启前端终端 (`Ctrl+C` 然后再次 `npm run dev`) 才能生效。**
+    4.  或者直接使用**内嵌 Key** 方案。
 
 ### Q3: 语音笔记无法录音？
 *   **原因**: 浏览器权限被拒绝。
 *   **解决**: 确保浏览器地址栏允许了麦克风权限。如果是 `http://` 协议，部分浏览器可能限制录音，但在 `localhost` 下通常是允许的。
-
-### Q4: 视频无法播放？
-*   **原因**: 示例视频使用的是 Google Cloud 的公共链接，需要翻墙或网络通畅。
-*   **解决**: 确保网络环境可以访问 `commondatastorage.googleapis.com`。您也可以在 `server/index.js` 中修改 `videos` 数据，换成您本地或国内的视频链接。
 
 ---
 

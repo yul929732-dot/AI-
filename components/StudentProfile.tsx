@@ -35,18 +35,12 @@ export const StudentProfile: React.FC<StudentProfileProps> = ({ user }) => {
   }, [user]);
 
   const generateAIAnalysis = async (s: LearningStats, m: MistakeRecord[]) => {
-    // In a real app, call geminiService. Here we simulate.
-    if (!process.env.API_KEY) {
-       setAiAnalysis("请配置 API Key 以获取 AI 分析报告。");
-       return;
-    }
-    
     try {
-       setTimeout(() => {
-         setAiAnalysis(`基于您的学习数据分析：\n\n您是一位${s.totalStudyHours > 30 ? '勤奋刻苦' : '注重效率'}的学习者。在${s.weakPoints[0] || '基础知识'}方面可能存在盲区。建议加强错题复习，特别是针对${m[0]?.topic || '薄弱'}环节的专项训练。保持当前的答题正确率（${s.quizAccuracy}%），您的潜力巨大！`);
-       }, 1500);
+       setAiAnalysis("AI 正在分析您的学习数据...");
+       const analysis = await geminiService.generateLearningProfile(s, m);
+       setAiAnalysis(analysis);
     } catch (e) {
-      setAiAnalysis("无法生成画像。");
+      setAiAnalysis("无法生成画像，请检查网络设置或 API Key。");
     }
   };
 

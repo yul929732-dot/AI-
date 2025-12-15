@@ -5,7 +5,7 @@ import { Button } from './Button';
 import { Input } from './Input';
 import { api } from '../services/api';
 import { Schedule } from './Schedule';
-import { UploadCloud, Video as VideoIcon, Users, BarChart, Home, PlusCircle, BookOpen, Sparkles, AlertTriangle, PenTool } from 'lucide-react';
+import { UploadCloud, Video as VideoIcon, Users, BarChart, Home, PlusCircle, BookOpen, Sparkles, AlertTriangle, PenTool, Download } from 'lucide-react';
 
 interface TeacherDashboardProps {
   user: User;
@@ -57,6 +57,52 @@ export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({ user, onVide
     } finally {
       setIsUploading(false);
     }
+  };
+
+  const handleDownloadReport = () => {
+      // Generate a mock CSV report
+      const headers = "学生姓名,学号,课程进度,测验平均分,活跃度\n";
+      const rows = [
+          "张三,1001,85%,92,高",
+          "李四,1002,60%,78,中",
+          "王五,1003,95%,98,高",
+          "赵六,1004,30%,65,低"
+      ].join("\n");
+      const content = headers + rows;
+      
+      const blob = new Blob([content], { type: 'text/csv;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `班级学情报表_${new Date().toLocaleDateString()}.csv`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+  };
+
+  const handleDeleteVideo = async (videoId: string) => {
+      if (confirm("确定要下架该课程吗？操作不可恢复。")) {
+          try {
+              await api.deleteVideo(videoId);
+              loadMyVideos();
+              onVideoUploaded();
+          } catch(e) {
+              alert("删除失败，请重试。");
+          }
+      }
+  };
+
+  const handleEditVideo = async (video: Video) => {
+      const newTitle = prompt("修改课程标题", video.title);
+      if (newTitle && newTitle !== video.title) {
+          try {
+              await api.updateVideo(video.id, { title: newTitle });
+              loadMyVideos();
+              onVideoUploaded();
+          } catch(e) {
+              alert("更新失败");
+          }
+      }
   };
 
   return (
@@ -245,7 +291,15 @@ export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({ user, onVide
                     <p className="leading-relaxed opacity-90">3 位学生连续未完成作业，需关注。</p>
                  </div>
               </div>
-              <Button variant="secondary" size="sm" className="mt-8 w-full text-emerald-700 font-bold bg-white hover:bg-emerald-50 border-none shadow-lg relative z-10">下载详细报告</Button>
+              <Button 
+                onClick={handleDownloadReport} 
+                variant="secondary" 
+                size="sm" 
+                className="mt-8 w-full text-emerald-700 font-bold bg-white hover:bg-emerald-50 border-none shadow-lg relative z-10"
+              >
+                  <Download className="w-4 h-4 mr-2" />
+                  下载详细报告
+              </Button>
            </div>
         </div>
       )}
@@ -274,11 +328,11 @@ export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({ user, onVide
                         </div>
                      </div>
                      <div className="flex gap-3 justify-end mt-4">
-                       <Button size="sm" variant="secondary" className="px-4 text-xs font-bold border-indigo-100 text-indigo-600 hover:bg-indigo-50">
+                       <Button onClick={() => handleEditVideo(v)} size="sm" variant="secondary" className="px-4 text-xs font-bold border-indigo-100 text-indigo-600 hover:bg-indigo-50">
                           <PenTool className="w-3 h-3 mr-1.5" /> 编辑
                        </Button>
-                       {/* Corrected "Take Down" Button for better visibility: Red background, white text */}
                        <Button 
+                         onClick={() => handleDeleteVideo(v.id)}
                          size="sm" 
                          variant="danger" 
                          className="px-4 text-xs font-bold shadow-sm bg-red-600 hover:bg-red-700 text-white border-none"

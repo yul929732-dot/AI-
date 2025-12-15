@@ -234,6 +234,34 @@ app.post('/api/videos', (req, res) => {
   res.json(newVideo);
 });
 
+// [新增] 删除视频接口
+app.delete('/api/videos/:id', (req, res) => {
+    const videoId = req.params.id;
+    const initialLength = db.videos.length;
+    db.videos = db.videos.filter(v => v.id !== videoId);
+    
+    if (db.videos.length < initialLength) {
+        saveDB();
+        res.json({ success: true });
+    } else {
+        res.status(404).json({ error: 'Video not found' });
+    }
+});
+
+// [新增] 更新视频接口
+app.put('/api/videos/:id', (req, res) => {
+    const videoId = req.params.id;
+    const idx = db.videos.findIndex(v => v.id === videoId);
+    
+    if (idx !== -1) {
+        db.videos[idx] = { ...db.videos[idx], ...req.body };
+        saveDB();
+        res.json(db.videos[idx]);
+    } else {
+        res.status(404).json({ error: 'Video not found' });
+    }
+});
+
 // Progress
 app.get('/api/users/:uid/progress/:vid', (req, res) => {
   const key = `${req.params.uid}_${req.params.vid}`;
