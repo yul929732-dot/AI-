@@ -6,11 +6,11 @@
     "src",
     "vite.config.ts" // If this is listed, it should also be removed or moved to "files"
   ],
-  // 👇 ADD THIS SECTION OR UPDATE THE EXISTING ONE
+  // ADD THIS SECTION OR UPDATE THE EXISTING ONE
   "exclude": [
     "node_modules",
     "dist",
     "**/*.spec.ts",
-    "vite.config.ts" // 👈 Add this line!
+    "vite.config.ts" // Add this line!
   ]
 }
